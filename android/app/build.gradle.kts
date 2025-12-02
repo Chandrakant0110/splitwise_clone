@@ -31,6 +31,10 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        resValue("string", "truecaller_client_id",
+            project.findProperty("TRUECALLER_CLIENT_ID")?.toString() ?: ""
+        )
     }
 
     buildTypes {
