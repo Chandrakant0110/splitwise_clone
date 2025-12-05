@@ -1,193 +1,133 @@
-/*
- * TRUECALLER SDK COPYRIGHT, TRADEMARK AND LICENSE NOTICE
- *
- * Copyright © 2015-Present, True Software Scandinavia AB. All rights reserved.
- *
- * Truecaller and Truecaller SDK are registered trademark of True Software Scandinavia AB.
- *
- * In accordance with the Truecaller SDK Agreement available
- * here (https://developer.truecaller.com/Truecaller-sdk-product-license-agreement-RoW.pdf)
- * accepted and agreed between You and Your respective Truecaller entity, You are granted a
- * limited, non-exclusive, non-sublicensable, non-transferable, royalty-free, license to use the
- * Truecaller SDK Product in object code form only, solely for the purpose of using
- * the Truecaller SDK Product with the applications and APIs provided by Truecaller.
- *
- * THE TRUECALLER SDK PRODUCT IS PROVIDED BY THE COPYRIGHT HOLDER AND AUTHOR “AS IS”,
- * WITHOUT WARRANTY OF ANY KIND,EXPRESS OR IMPLIED,INCLUDING BUT NOT LIMITED
- * TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
- * SOFTWARE QUALITY,PERFORMANCE,DATA ACCURACY AND NON-INFRINGEMENT. IN NO
- * EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES OR
- * OTHER LIABILITY INCLUDING BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION: HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THE TRUECALLER SDK PRODUCT OR THE USE
- * OR OTHER DEALINGS IN THE TRUECALLER SDK PRODUCT, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE. AS A RESULT, BY INTEGRATING THE TRUECALLER SDK
- * PRODUCT YOU ARE ASSUMING THE ENTIRE RISK AS TO ITS QUALITY AND PERFORMANCE.
- */
-
 import 'package:flutter/material.dart';
-import 'package:splitwise_clone/non_tc_screen.dart';
-import 'package:truecaller_sdk/truecaller_sdk.dart';
-import 'package:uuid/uuid.dart';
-
-import 'customization/config_options.dart';
-import 'customization/oauth_result_screen.dart';
+import 'package:splitwise_clone/screens/mobile_auth_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
-  _MyAppState createState() => _MyAppState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'SplitWise Clone',
+      theme: ThemeData(
+        // This is the theme of your application.
+        //
+        // TRY THIS: Try running your application with "flutter run". You'll see
+        // the application has a purple toolbar. Then, without quitting the app,
+        // try changing the seedColor in the colorScheme below to Colors.green
+        // and then invoke "hot reload" (save your changes or press the "hot
+        // reload" button in a Flutter-supported IDE, or press "r" if you used
+        // the command line to start the app).
+        //
+        // Notice that the counter didn't reset back to zero; the application
+        // state is not lost during the reload. To reset the state, use hot
+        // restart instead.
+        //
+        // This works for code too, not just values: Most code changes can be
+        // tested with just a hot reload.
+        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+      ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
+  }
 }
 
-class _MyAppState extends State<MyApp> {
-  late Stream<TcSdkCallback>? _stream;
-  late String? codeVerifier;
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  // This widget is the home page of your application. It is stateful, meaning
+  // that it has a State object (defined below) that contains fields that affect
+  // how it looks.
+
+  // This class is the configuration for the state. It holds the values (in this
+  // case the title) provided by the parent (in this case the App widget) and
+  // used by the build method of the State. Fields in a Widget subclass are
+  // always marked "final".
+
+  final String title;
 
   @override
-  void initState() {
-    super.initState();
-    _stream = TcSdk.streamCallbackData;
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
+
+  void _incrementCounter() {
+    setState(() {
+      // This call to setState tells the Flutter framework that something has
+      // changed in this State, which causes it to rerun the build method below
+      // so that the display can reflect the updated values. If we changed
+      // _counter without calling setState(), then the build method would not be
+      // called again, and so nothing would appear to happen.
+      _counter++;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      // debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Truecaller SDK example')),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              MaterialButton(
-                onPressed: () {
-                  TcSdk.initializeSDK(
-                    sdkOption: TcSdkOptions.OPTION_VERIFY_ALL_USERS,
-                  );
-                  TcSdk.isOAuthFlowUsable.then((isOAuthFlowUsable) {
-                    if (isOAuthFlowUsable) {
-                      TcSdk.setOAuthState(Uuid().v1());
-                      TcSdk.setOAuthScopes([
-                        'profile',
-                        'phone',
-                        'openid',
-                        'offline_access',
-                      ]);
-                      TcSdk.generateRandomCodeVerifier.then((codeVerifier) {
-                        TcSdk.generateCodeChallenge(codeVerifier).then((
-                          codeChallenge,
-                        ) {
-                          if (codeChallenge != null) {
-                            this.codeVerifier = codeVerifier;
-                            TcSdk.setCodeChallenge(codeChallenge);
-                            TcSdk.getAuthorizationCode;
-                          } else {
-                            final snackBar = SnackBar(
-                              content: Text("Device not supported"),
-                            );
-                            ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(snackBar);
-                            print("***Code challenge NULL***");
-                          }
-                        });
-                      });
-                    } else {
-                      final snackBar = SnackBar(content: Text("Not Usable"));
-                      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                      print("***Not usable***");
-                    }
-                  });
-                },
-                child: Text(
-                  "Initialize SDK & Get Authorization Code",
-                  style: TextStyle(color: Colors.white),
-                ),
-                color: Colors.blue,
-              ),
-              Divider(color: Colors.transparent, height: 20.0),
-              StreamBuilder<TcSdkCallback>(
-                stream: _stream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    switch (snapshot.data!.result) {
-                      case TcSdkCallbackResult.success:
-                        return MaterialButton(
-                          color: Colors.green,
-                          child: Text(
-                            "Go to OAuth Result",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => OAuthResultScreen(),
-                                settings: RouteSettings(
-                                  arguments: AccessTokenHelper(
-                                    snapshot.data!.tcOAuthData!,
-                                    codeVerifier!,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      case TcSdkCallbackResult.failure:
-                        return Text(
-                          "${snapshot.data!.error!.code} : ${snapshot.data!.error!.message}",
-                        );
-                      case TcSdkCallbackResult.verification:
-                        return Column(
-                          children: [
-                            Text(
-                              "Verification Required : "
-                              "${snapshot.data!.error != null ? snapshot.data!.error!.code : ""}",
-                            ),
-                            MaterialButton(
-                              color: Colors.green,
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => NonTcVerification(),
-                                  ),
-                                );
-                              },
-                              child: Text(
-                                "Do manual verification",
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ],
-                        );
-                      default:
-                        return Text("Invalid result");
-                    }
-                  } else {
-                    return Text("");
-                  }
-                },
-              ),
-            ],
-          ),
+    // This method is rerun every time setState is called, for instance as done
+    // by the _incrementCounter method above.
+    //
+    // The Flutter framework has been optimized to make rerunning build methods
+    // fast, so that you can just rebuild anything that needs updating rather
+    // than having to individually change instances of widgets.
+    return Scaffold(
+      appBar: AppBar(
+        // TRY THIS: Try changing the color here to a specific color (to
+        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
+        // change color while the other colors stay the same.
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        // Here we take the value from the MyHomePage object that was created by
+        // the App.build method, and use it to set our appbar title.
+        title: Text(widget.title),
+      ),
+      body: Center(
+        // Center is a layout widget. It takes a single child and positions it
+        // in the middle of the parent.
+        child: Column(
+          // Column is also a layout widget. It takes a list of children and
+          // arranges them vertically. By default, it sizes itself to fit its
+          // children horizontally, and tries to be as tall as its parent.
+          //
+          // Column has various properties to control how it sizes itself and
+          // how it positions its children. Here we use mainAxisAlignment to
+          // center the children vertically; the main axis here is the vertical
+          // axis because Columns are vertical (the cross axis would be
+          // horizontal).
+          //
+          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+          // action in the IDE, or press "p" in the console), to see the
+          // wireframe for each widget.
+          mainAxisAlignment: .center,
+          children: [
+            const Text('You have pushed the button this many times:'),
+            Text(
+              '$_counter',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MobileAuthScreen()),
+                );
+              },
+              child: Text("Navigate to Mobile Aurth Screeen"),
+            ),
+          ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _incrementCounter,
+        tooltip: 'Increment',
+        child: const Icon(Icons.add),
+      ),
     );
-  }
-
-  @override
-  void dispose() {
-    _stream = null;
-    super.dispose();
   }
 }

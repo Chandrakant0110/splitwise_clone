@@ -31,8 +31,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:splitwise_clone/customization/oauth_result_screen.dart';
-import 'package:splitwise_clone/non_tc_screen.dart';
+import 'package:splitwise_clone/truecaller-integration/customization/oauth_result_screen.dart';
+import 'package:splitwise_clone/truecaller-integration/non_tc_screen.dart';
 import 'package:truecaller_sdk/truecaller_sdk.dart';
 import 'package:uuid/uuid.dart';
 
