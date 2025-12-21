@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:splitwise_clone/firebase_options.dart';
+import 'package:splitwise_clone/firebase_mobile_auth/firebase_mobile_auth.dart';
 import 'package:splitwise_clone/screens/mobile_auth_screen.dart';
+import 'package:splitwise_clone/screens/home_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  debugPrint('[App] Initializing Firebase...');
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint('[App] Firebase initialized successfully');
+  debugPrint('[App] Starting application...');
   runApp(const MyApp());
 }
 
@@ -29,7 +38,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -103,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
           // action in the IDE, or press "p" in the console), to see the
           // wireframe for each widget.
-          mainAxisAlignment: .center,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text('You have pushed the button this many times:'),
             Text(
@@ -113,12 +122,84 @@ class _MyHomePageState extends State<MyHomePage> {
 
             ElevatedButton(
               onPressed: () {
+                debugPrint('[Main] Starting phone authentication flow...');
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MobileAuthScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => PhoneInputScreen(
+                      config: AuthConfig.defaultConfig(),
+                      onCodeSent: (phoneNumber, verificationId) {
+                        debugPrint(
+                          '[Main] Code sent, navigating to OTP screen...',
+                        );
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => OtpVerificationScreen(
+                              phoneNumber: phoneNumber,
+                              verificationId: verificationId,
+                              onVerified: (userId, phoneNumber) {
+                                debugPrint(
+                                  '[Main] ✅ Authentication successful!',
+                                );
+                                debugPrint(
+                                  '[Main] Navigating to home screen...',
+                                );
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => HomeScreen(
+                                      userId: userId,
+                                      phoneNumber: phoneNumber,
+                                    ),
+                                  ),
+                                );
+                              },
+                              onError: (error) {
+                                debugPrint(
+                                  '[Main] ❌ Authentication error: ${error.message}',
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('❌ Error: ${error.message}'),
+                                    backgroundColor: Colors.red,
+                                    duration: const Duration(seconds: 4),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      onError: (error) {
+                        debugPrint(
+                          '[Main] ❌ Error sending code: ${error.message}',
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('❌ Error: ${error.message}'),
+                            backgroundColor: Colors.red,
+                            duration: const Duration(seconds: 4),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 );
               },
-              child: Text("Navigate to Mobile Aurth Screeen"),
+              child: const Text("Start Phone Authentication"),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MobileAuthScreen(),
+                  ),
+                );
+              },
+              child: const Text("Navigate to Mobile Auth Screen (Old)"),
             ),
           ],
         ),
